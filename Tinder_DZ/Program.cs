@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 /*
- Задать через enum список атрибутов, таких как любимые жанры в музыке, в кино.
+ Задать через enum список атрибутов, таких как любимые жанры в музыке.
  Отношение к алкоголю, Курению. Рост, вес. 
  */
 
@@ -17,11 +17,13 @@ namespace Tinder_DZ
         static void Main(string[] args)
         {
             var numAdditionalCandidates = 2;
+            var userprefs = new UserPreferences((0,150), (0,500), (0,500), null, null, new List<MusicGenre>());
 
 
             void InitializingInterface()
             {
                 List<Person> candidates = PredefinedCandidates().Union(AdditionalCandidates()).ToList();
+                ChoosePreferences();
 
                 candidates = ShuffleCandidates(candidates);
 
@@ -33,9 +35,9 @@ namespace Tinder_DZ
             {
                 List<Person> predefinedCandidates = new List<Person>()
                 {
-                    new Person("Dmitry", 'm', 20, "Russia"),
-                    new Person("Ann", 'f', 31, "UK"),
-                    new Person("Genry", 'm', 18, "Germany")
+                    new Person("Dmitry", 'm', 20, 180, 75, null, null, new List<MusicGenre>() {MusicGenre.HipHop}, "Russia"),
+                    new Person("Ann", 'f', 31, 160, 53, null, null, new List<MusicGenre>(), "UK"),
+                    new Person("Genry", 'm', 18, 185, 80, null, null, new List<MusicGenre>(), "Germany")
                 };
 
                 return predefinedCandidates;
@@ -72,7 +74,20 @@ namespace Tinder_DZ
                 Console.WriteLine("Enter the age of the candidate:");
 
                 var age = int.Parse(Console.ReadLine());
+                
+                Console.WriteLine("Enter the height of the candidate:");
 
+                var height = int.Parse(Console.ReadLine());
+
+                Console.WriteLine("Enter the weight of the candidate:");
+
+                var weight = int.Parse(Console.ReadLine());
+
+                var smokeat = HabitPref("курению");
+
+                var alcat = HabitPref("алкоголю");
+
+                var mpref = ChooseMusicPrefs();
 
                 Console.WriteLine("Enter the country of the candidate:");
 
@@ -83,7 +98,7 @@ namespace Tinder_DZ
                 Console.WriteLine();
 
 
-                return new Person(name, sex, age, country);
+                return new Person(name, sex, age, height, weight, smokeat, alcat, mpref ,country);
             }
 
 
@@ -118,14 +133,25 @@ namespace Tinder_DZ
                 if (sexualPreferences != null)
                 {
                     chosenCandidates = candidates
-                        .Where(c => (c.Sex == true || c.Sex == false) && c.Sex == sexualPreferences)
+                        .Where(c => (c.Sex == true || c.Sex == false) && (c.Sex == sexualPreferences))
+                        .Where(c => (userprefs.Age.Item1 <= c.Age & c.Age <= userprefs.Age.Item2))
+                        .Where(c => (userprefs.Height.Item1 <= c.Height & c.Height <= userprefs.Height.Item2))
+                        .Where(c => (userprefs.Weight.Item1 <= c.Weight & c.Weight <= userprefs.Weight.Item2))
+                        .Where(c => (c.SmokeAt == userprefs.SmokeAt) || (userprefs.SmokeAt == null) || (userprefs.SmokeAt == true && c.SmokeAt == null))
+                        .Where(c => (c.AlcAt == userprefs.AlcAt) || (userprefs.AlcAt == null) || (userprefs.AlcAt == true && c.AlcAt == null))
+                        .Where(c => userprefs.MusicPref.Any(x => c.MusicPref.Any(y => y == x)) || userprefs.MusicPref.Count == 0)
                         .ToList();
                 }
-
+//(nums1.Any(x => nums2.Any(y => y == x)))
                 else
                 {
                     chosenCandidates = candidates
-                        .Where(c => true)
+                        .Where(c => (userprefs.Age.Item1 <= c.Age & c.Age <= userprefs.Age.Item2))
+                        .Where(c => (userprefs.Height.Item1 <= c.Height & c.Height <= userprefs.Height.Item2))
+                        .Where(c => (userprefs.Weight.Item1 <= c.Weight & c.Weight <= userprefs.Weight.Item2))
+                        .Where(c => (c.SmokeAt == userprefs.SmokeAt) || (userprefs.SmokeAt == null) || (userprefs.SmokeAt == true && c.SmokeAt == null))
+                        .Where(c => (c.AlcAt == userprefs.AlcAt) || (userprefs.AlcAt == null) || (userprefs.AlcAt == true && c.AlcAt == null))
+                        .Where(c => userprefs.MusicPref.Any(x => c.MusicPref.Any(y => y == x)) || userprefs.MusicPref.Count == 0)
                         .ToList();
                 }
 
@@ -212,6 +238,123 @@ namespace Tinder_DZ
                 else
                 {
                     Console.WriteLine(textIfEmpty);
+                }
+            }
+
+            (int min, int max) ChooseMinMax(string parameter)
+            {
+                Console.WriteLine($"Введите минимальное желмаемое значение {parameter}");
+                var min = int.Parse(Console.ReadLine());
+                
+                Console.WriteLine($"Введите максимальное желаемое значение {parameter}");
+                var max = int.Parse(Console.ReadLine());
+
+                return (min, max);
+
+            }
+
+            bool? HabitPref(string habit)
+            {
+                bool? pref = null;
+                Console.WriteLine($"Выберите отношение к {habit} " +
+                                  "\n1 - Положительное" +
+                                  "\n2 - Отрицательное" +
+                                  "\n3 - Нейтральное");
+                var userchoice = int.Parse(Console.ReadLine());
+                if (userchoice == 1)
+                {
+                    pref = true;
+                }
+                else if (userchoice == 2)
+                {
+                    pref = false;
+                }
+                else if (userchoice == 3)
+                {
+                    pref = null;
+                }
+
+                return pref;
+            }
+
+
+
+            List<MusicGenre> ChooseMusicPrefs()
+            {
+                var userlist = new List<MusicGenre>();
+
+                while (true)
+                {
+                    Console.WriteLine("Выберите жанр который вы хотите добавить в свои предпочтения" +
+                                      "\n1 - Хип-хоп" +
+                                      "\n2 - Рэп" +
+                                      "\n3 - Рок" +
+                                      "\n4 - Закончить выбор");
+                    
+                    var userchoice = int.Parse(Console.ReadLine());
+                    
+                    if (userchoice == 1)
+                    {
+                        userlist.Add(MusicGenre.HipHop);
+                    }
+                    else if (userchoice == 2)
+                    {
+                        userlist.Add(MusicGenre.Rap);
+                    }
+                    else if (userchoice == 3)
+                    {
+                        userlist.Add(MusicGenre.Rock);
+                    }
+                    else if (userchoice == 4)
+                    {
+                        return userlist;
+                    }
+                }
+            }
+            
+
+
+            void ChoosePreferences()
+            {
+                while (true)
+                {
+                    Console.WriteLine("Выберите какие предпочтения по кандидатам вы хотите задать:" +
+                                      "\n1 - Минамальный и максимальный возраст" +
+                                      "\n2 - Минимальный и максимальный рост" +
+                                      "\n3 - Минимальный и максимальный вес" +
+                                      "\n4 - Отношение к курению" +
+                                      "\n5 - Отношение к алкоголю" +
+                                      "\n6 - Предпочитаемые жанры в музыке" +
+                                      "\n7 - Закончить выбор предпочтений");
+                    var userchoice = int.Parse(Console.ReadLine());
+                    if (userchoice == 1)
+                    {
+                        userprefs.Age = ChooseMinMax("возраста");
+                    }
+                    else if (userchoice == 2)
+                    {
+                        userprefs.Height = ChooseMinMax("роста");
+                    }
+                    else if (userchoice == 3)
+                    {
+                        userprefs.Weight = ChooseMinMax("веса");
+                    }
+                    else if (userchoice == 4)
+                    {
+                        userprefs.SmokeAt = HabitPref("курению");
+                    }
+                    else if (userchoice == 5)
+                    {
+                        userprefs.AlcAt = HabitPref("алкоголю");
+                    }
+                    else if (userchoice == 6)
+                    {
+                        userprefs.MusicPref = ChooseMusicPrefs();
+                    }
+                    else if (userchoice == 7)
+                    {
+                        return;
+                    }
                 }
             }
 

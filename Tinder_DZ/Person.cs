@@ -13,7 +13,16 @@ namespace Tinder_DZ
         public bool? Sex { get; set; }
 
         public int Age { get; set; }
-
+        
+        public int Height { get; set; }
+        
+        public int Weight { get; set; }
+        
+        public bool? SmokeAt { get; set; }
+        
+        public bool? AlcAt { get; set; }
+        
+        public List<MusicGenre> MusicPref { get; set; }
         public string Country { get; set; }
 
 
@@ -22,10 +31,15 @@ namespace Tinder_DZ
 
         }
 
-        public Person(string name, char sex, int age, string country)
+        public Person(string name, char sex, int age, int height, int weight, bool? smokeat, bool? alcat, List<MusicGenre> mpref, string country)
         {
             Name = name;
             Age = age;
+            Height = height;
+            Weight = weight;
+            SmokeAt = smokeat;
+            AlcAt = alcat;
+            MusicPref = mpref;
             Country = country;
             Sex = ReadSex(sex);
         }
@@ -46,10 +60,32 @@ namespace Tinder_DZ
         }
 
 
-
+        public void PresentMusicPrefs()
+        {
+            Console.Write("Music preferencies: ");
+            foreach (var pref in MusicPref)
+            {
+                if (pref == MusicGenre.HipHop)
+                {
+                    Console.Write("Hip-Hop ");
+                }
+                else if (pref == MusicGenre.Rap)
+                {
+                    Console.Write("Rap ");
+                }
+                else if (pref == MusicGenre.Rock)
+                {
+                    Console.Write("Rock");
+                }
+            }
+        }
         public void PrintInformation()
         {
-            Console.WriteLine($"Name: {Name}    Age: {Age}    Country: {Country}    Sex: {PrintSex(Sex)}");
+            Console.WriteLine($"Name: {Name}    Age: {Age}    Height: {Height}    Weight: {Weight}    Country: {Country}    Sex: {PrintSex(Sex)}");
+            if (MusicPref.Count != 0)
+            {
+                PresentMusicPrefs();
+            }
             Console.WriteLine();
         }
 
